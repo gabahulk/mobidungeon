@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class TouchAnalogStickController : MonoBehaviour
+
+public class TouchAnalogStickController : MonoBehaviour, ICharacterController
 {
 
     private float horizontal;
@@ -18,7 +20,6 @@ public class TouchAnalogStickController : MonoBehaviour
     public GameObject analogStickControler;
     public Image analogStickBackgroundImage;
     public GameObject analogStick;
-    public bool mouseDebug;
     public Canvas canvas;
 
     public float Horizontal { get => horizontal; set => horizontal = value; }
@@ -40,16 +41,29 @@ public class TouchAnalogStickController : MonoBehaviour
         analogStickControler.SetActive(false);
     }
 
+    private bool IsPointerOverUIObject()
+    {
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+        return results.Count > 0;
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (mouseDebug)
+
+        if (!IsPointerOverUIObject())
         {
             if (Input.GetMouseButtonDown(0))
             {
                 ShowAnalogStickAtPosition(Input.mousePosition);
             }
+        }
 
+        if (analogStickControler.activeSelf)
+        {
             if (Input.GetMouseButton(0))
             {
                 MoveStick(Input.mousePosition);
@@ -62,21 +76,23 @@ public class TouchAnalogStickController : MonoBehaviour
                 HideAnalogStick();
             }
         }
-        else
-        {
-            foreach (Touch touch in Input.touches)
-            {
-                if (touch.phase == TouchPhase.Began)
-                {
-                    // Construct a ray from the current touch coordinates
-                    Ray ray = Camera.main.ScreenPointToRay(touch.position);
-                    if (Physics.Raycast(ray))
-                    {
-                        Debug.LogWarning("NYI :(");
-                    }
-                }
-            }
-        }
+
+
+        //else
+        //{
+        //    foreach (Touch touch in Input.touches)
+        //    {
+        //        if (touch.phase == TouchPhase.Began)
+        //        {
+        //            // Construct a ray from the current touch coordinates
+        //            Ray ray = Camera.main.ScreenPointToRay(touch.position);
+        //            if (Physics.Raycast(ray))
+        //            {
+        //                Debug.LogWarning("NYI :(");
+        //            }
+        //        }
+        //    }
+        //}
     }
 
     void ShowAnalogStickAtPosition(Vector3 position)

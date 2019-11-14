@@ -5,6 +5,7 @@ using UnityEngine;
 public class Follow : MonoBehaviour
 {
     public Transform target;
+    public Vector2 offset;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,8 +16,8 @@ public class Follow : MonoBehaviour
     void Update()
     {
         Vector3 newPos = this.transform.position;
-        newPos.x = target.position.x;
-        newPos.y = target.position.y;
+        newPos.x = target.position.x + offset.x;
+        newPos.y = target.position.y + offset.y;
         this.transform.position = newPos;
     }
 }
