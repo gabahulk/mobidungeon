@@ -10,6 +10,9 @@ public class EnemyAIController : MonoBehaviour, ICharacterController
     public float knockbackForce;
     public Animator AIController;
     public Rigidbody2D enemyRigidbody;
+    public SpriteRenderer sprite;
+    public GameObject enemy;
+    public EnemyStats stats;
 
     public int life = 3;
 
@@ -95,31 +98,31 @@ public class EnemyAIController : MonoBehaviour, ICharacterController
         player = null;
     }
 
-    IEnumerator KnockbackWait(float seconds)
+    IEnumerator DamageCoroutine()
     {
-        isKnockbacking = true;
-        yield return new WaitForSeconds(seconds);
-        isKnockbacking = false;
-        enemyRigidbody.velocity = Vector2.zero;
-    }
-
-
-    public void Knockback(Vector2 direction, float force)
-    {
-        enemyRigidbody.AddForce(direction * force, ForceMode2D.Impulse);
-        StartCoroutine("KnockbackWait", 0.5f);
+        int numberOfTimesToBlink = 3;
+        while (numberOfTimesToBlink > 0)
+        {
+            sprite.color = Color.red;
+            yield return new WaitForSeconds(0.1f);
+            sprite.color = Color.white;
+            yield return new WaitForSeconds(0.1f);
+            numberOfTimesToBlink--;
+        }
     }
 
     private void OnPlayerCollision(GameObject player)
     {
         Vector2 direction = player.transform.position - this.transform.position;
-        if (!player.GetComponent<PlayerStats>().attacking)
+        if (!player.GetComponent<CharacterStats>().attacking)
         {
             player.GetComponent<TopDownCharacterController>().Knockback(direction, knockbackForce);
+            player.GetComponent<CharacterStats>().ReceiveDamage(stats.baseDamage);
         }
         else
         {
-            Knockback(-direction, 20);
+            StartCoroutine("DamageCoroutine");
+            enemy.GetComponent<TopDownCharacterController>().Knockback(Vector2.Perpendicular(direction.normalized), 3);
             life--;
 
             if (life == 0)

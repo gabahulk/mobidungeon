@@ -4,28 +4,27 @@ using UnityEngine;
 
 public class TopDownCharacterController : MonoBehaviour
 {
-
     public Rigidbody2D characterRigidbody;
     public float speed;
     public ICharacterController controller;
     public GameObject controllerGameObject;
     public Animator animator;
-    public PlayerStats playerStats;
+    public CharacterStats playerStats;
 
     private Vector2 lastDeltaMovement;
-    private bool isKnockbacking = false;
+    private bool isControllerLocked = false;
     private GameObject target;
 
     void Awake()
     {
-        //Unity can't pass an interface to the inspector, so I had to this stupid bad code.
+        //Unity can't pass an interface to the inspector, so I had to do this stupid bad code.
         controller = controllerGameObject.GetComponent<ICharacterController>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (isKnockbacking)
+        if (isControllerLocked)
         {
             return;
         }
@@ -50,8 +49,6 @@ public class TopDownCharacterController : MonoBehaviour
         {
             animator.SetBool("isMoving", false);
         }
-
-       
     }
 
     void MoveCharacter(Vector2 movement, Vector2 currentPosition)
@@ -69,20 +66,33 @@ public class TopDownCharacterController : MonoBehaviour
         return false;
     }
 
-    IEnumerator KnockbackWait(float seconds, bool isAttack)
+    IEnumerator KnockbackWait(float seconds)
     {
-        isKnockbacking = true;
+        isControllerLocked = true;
         yield return new WaitForSeconds(seconds);
-        isKnockbacking = false;
+        isControllerLocked = false;
         characterRigidbody.velocity = Vector2.zero;
-        playerStats.attacking = false;
     }
 
 
-    public void Knockback(Vector2 direction, float force, bool isAttack = false)
+    public void Knockback(Vector2 direction, float force)
     {
-        playerStats.attacking = isAttack;
         characterRigidbody.AddForce(direction.normalized * force, ForceMode2D.Impulse);
-        StartCoroutine(KnockbackWait(0.5f, isAttack));
+        StartCoroutine(KnockbackWait(0.5f));
+    }
+
+    IEnumerator DashWait(float seconds, CardEffect.CardEffectEndDelegate endEffect)
+    {
+        isControllerLocked = true;
+        yield return new WaitForSeconds(seconds);
+        isControllerLocked = false;
+        characterRigidbody.velocity = Vector2.zero;
+        endEffect();
+    }
+
+    public void Dash(Vector2 direction, float speed, CardEffect.CardEffectEndDelegate endEffect)
+    {
+        characterRigidbody.velocity = (direction.normalized * speed);
+        StartCoroutine(DashWait(0.5f, endEffect));
     }
 }

@@ -7,7 +7,7 @@ public class PlayerAim : MonoBehaviour
 {
     public GameObject aim;
     public GameObject targetEnemy;
-    public PlayerStats stats;
+    public CharacterStats stats;
     private ContactFilter2D filter;
 
     private void Start()
@@ -21,13 +21,11 @@ public class PlayerAim : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        List<RaycastHit2D> hits = new List<RaycastHit2D>();
-
-        if (Physics2D.CircleCast(transform.position, stats.visionRadius, Vector2.zero, filter, hits) > 0)
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, stats.visionRadius, LayerMask.GetMask("Enemy"));
+        if (colliders.Length > 0)
         {
             aim.SetActive(true);
-            hits.OrderBy(a => (Vector2.Distance(transform.position, a.transform.position)));
-            aim.transform.position = hits[0].transform.position;
+            aim.transform.position = colliders[0].transform.position;
             targetEnemy = aim.gameObject;
         }
         else
